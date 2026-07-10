@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>vaultboard</id>
+  <name>VaultBoard</name>
+  <summary>Offline-first, local-only Kanban board</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>
+      VaultBoard is a modern Kanban board utility for the desktop, inspired by
+      Trello but built around one rule: your tasks never leave your machine.
+      Boards, lists and cards are stored locally and persist across restarts,
+      with no account, no cloud and no network access.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Multiple boards with a collapsible sidebar</li>
+      <li>Unlimited lists per board, drag-and-drop cards and lists</li>
+      <li>Priority labels, descriptions and completion tracking</li>
+      <li>Instant local search across the whole board</li>
+      <li>Live completion statistics</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">vaultboard.desktop</launchable>
+  <categories>
+    <category>Office</category>
+    <category>ProjectManagement</category>
+  </categories>
+  <provides>
+    <binary>vaultboard</binary>
+  </provides>
+</component>

@@ -1,0 +1,42 @@
+# Maintainer: VaultBoard contributors
+#
+# Builds VaultBoard from source on Arch Linux. For a prebuilt package,
+# grab the .pkg.tar.zst from the GitHub releases page instead and install
+# it with `pacman -U`.
+#
+# Usage: cd packaging/arch && makepkg -si
+
+pkgname=vaultboard
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Offline-first, local-only Kanban board for desktop"
+arch=('x86_64')
+url="https://github.com/yuuge7/VaultBoard"
+license=('MIT')
+depends=('gtk3')
+makedepends=('flutter' 'clang' 'cmake' 'ninja' 'pkgconf')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "VaultBoard-$pkgver"
+  flutter build linux --release
+}
+
+package() {
+  cd "VaultBoard-$pkgver"
+
+  install -dm755 "$pkgdir/usr/lib/$pkgname"
+  cp -r build/linux/x64/release/bundle/. "$pkgdir/usr/lib/$pkgname/"
+
+  install -dm755 "$pkgdir/usr/bin"
+  ln -s "/usr/lib/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
+
+  install -Dm644 packaging/linux/vaultboard.desktop \
+    "$pkgdir/usr/share/applications/vaultboard.desktop"
+  install -Dm644 packaging/linux/vaultboard.svg \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/vaultboard.svg"
+  install -Dm644 packaging/linux/vaultboard.metainfo.xml \
+    "$pkgdir/usr/share/metainfo/vaultboard.metainfo.xml"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

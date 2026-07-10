@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=VaultBoard
+GenericName=Kanban Board
+Comment=Offline-first, local-only Kanban board
+Exec=vaultboard
+Icon=vaultboard
+Terminal=false
+Categories=Office;ProjectManagement;
+Keywords=kanban;tasks;todo;board;offline;productivity;
+StartupWMClass=vaultboard
