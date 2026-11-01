@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme.dart';
 import 'dialogs.dart';
+import 'save_file_menu.dart';
 
 /// Opens the board creation dialog and selects the new board.
 Future<void> createBoardFlow(BuildContext context, WidgetRef ref) async {
@@ -22,18 +23,18 @@ Future<void> createBoardFlow(BuildContext context, WidgetRef ref) async {
 
 /// Collapsible board switcher pinned to the left edge.
 class Sidebar extends ConsumerWidget {
-  const Sidebar({super.key});
+  final bool compact;
+
+  const Sidebar({super.key, this.compact = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final collapsed = ref.watch(sidebarCollapsedProvider);
+    final collapsed = compact || ref.watch(sidebarCollapsedProvider);
     final boards = ref.watch(boardsProvider);
     final selectedId = ref.watch(currentBoardProvider)?.id;
     final theme = Theme.of(context);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
+    return Container(
       width: collapsed ? 64 : 252,
       decoration: const BoxDecoration(
         color: VaultColors.surface,
@@ -72,6 +73,7 @@ class Sidebar extends ConsumerWidget {
             ),
           ),
           const Divider(height: 1),
+          SaveFileMenu(collapsed: collapsed),
           Padding(
             padding: const EdgeInsets.all(10),
             child: collapsed
@@ -98,9 +100,15 @@ class Sidebar extends ConsumerWidget {
     ThemeData theme,
   ) {
     final toggle = IconButton(
-      tooltip: collapsed ? 'Expand sidebar' : 'Collapse sidebar',
-      onPressed: () =>
-          ref.read(sidebarCollapsedProvider.notifier).state = !collapsed,
+      tooltip: compact
+          ? 'Sidebar expands in a wider window'
+          : collapsed
+          ? 'Expand sidebar'
+          : 'Collapse sidebar',
+      onPressed: compact
+          ? null
+          : () =>
+                ref.read(sidebarCollapsedProvider.notifier).state = !collapsed,
       icon: Icon(
         collapsed
             ? Icons.keyboard_double_arrow_right_rounded
@@ -162,7 +170,11 @@ class _BoardTile extends ConsumerWidget {
     ref.read(searchQueryProvider.notifier).state = '';
   }
 
-  Future<void> _onMenu(BuildContext context, WidgetRef ref, String action) async {
+  Future<void> _onMenu(
+    BuildContext context,
+    WidgetRef ref,
+    String action,
+  ) async {
     switch (action) {
       case 'rename':
         final name = await promptText(
@@ -234,7 +246,9 @@ class _BoardTile extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Material(
-        color: selected ? board.color.withValues(alpha: 0.13) : Colors.transparent,
+        color: selected
+            ? board.color.withValues(alpha: 0.13)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           onTap: () => _select(ref),
@@ -263,8 +277,11 @@ class _BoardTile extends ConsumerWidget {
                 ),
                 PopupMenuButton<String>(
                   tooltip: 'Board options',
-                  icon: const Icon(Icons.more_vert_rounded,
-                      size: 16, color: VaultColors.textSecondary),
+                  icon: const Icon(
+                    Icons.more_vert_rounded,
+                    size: 16,
+                    color: VaultColors.textSecondary,
+                  ),
                   onSelected: (action) => _onMenu(context, ref, action),
                   itemBuilder: (context) => [
                     const PopupMenuItem(
@@ -281,10 +298,15 @@ class _BoardTile extends ConsumerWidget {
                       child: ListTile(
                         dense: true,
                         contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.delete_outline_rounded,
-                            size: 18, color: Color(0xFFEF5350)),
-                        title: Text('Delete',
-                            style: TextStyle(color: Color(0xFFEF5350))),
+                        leading: Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                          color: Color(0xFFEF5350),
+                        ),
+                        title: Text(
+                          'Delete',
+                          style: TextStyle(color: Color(0xFFEF5350)),
+                        ),
                       ),
                     ),
                   ],

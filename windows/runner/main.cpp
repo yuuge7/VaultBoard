@@ -1,5 +1,6 @@
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
+#include <flutter_windows.h>
 #include <windows.h>
 
 #include "flutter_window.h"
@@ -25,9 +26,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
   FlutterWindow window(project);
-  Win32Window::Point origin(10, 10);
-  Win32Window::Size size(1280, 720);
-  if (!window.Create(L"vaultboard", origin, size)) {
+  // Open relative to the usable display area, including on high-DPI screens.
+  RECT work_area = {0, 0, 1280, 720};
+  SystemParametersInfo(SPI_GETWORKAREA, 0, &work_area, 0);
+  const POINT primary_point = {0, 0};
+  const HMONITOR monitor =
+      MonitorFromPoint(primary_point, MONITOR_DEFAULTTOPRIMARY);
+  const double scale = FlutterDesktopGetDpiForMonitor(monitor) / 96.0;
+  const double width = (work_area.right - work_area.left) / scale;
+  const double height = (work_area.bottom - work_area.top) / scale;
+  Win32Window::Point origin(static_cast<unsigned int>(width * 0.05),
+                           static_cast<unsigned int>(height * 0.07));
+  Win32Window::Size size(static_cast<unsigned int>(width * 0.90),
+                        static_cast<unsigned int>(height * 0.86));
+  if (!window.Create(L"VaultBoard", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

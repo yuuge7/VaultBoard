@@ -52,7 +52,15 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "vaultboard");
   }
 
-  gtk_window_set_default_size(window, 1280, 720);
+  GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(window));
+  GdkMonitor* monitor = gdk_display_get_primary_monitor(display);
+  if (monitor == nullptr) monitor = gdk_display_get_monitor(display, 0);
+  if (monitor != nullptr) {
+    GdkRectangle work_area;
+    gdk_monitor_get_workarea(monitor, &work_area);
+    gtk_window_set_default_size(window, work_area.width * 0.90,
+                                work_area.height * 0.86);
+  }
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(

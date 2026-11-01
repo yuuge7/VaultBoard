@@ -105,7 +105,6 @@ class _ListColumnState extends ConsumerState<ListColumn> {
         final hovering = candidates.isNotEmpty;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          width: 300,
           decoration: BoxDecoration(
             color: VaultColors.column,
             borderRadius: BorderRadius.circular(14),
@@ -117,18 +116,23 @@ class _ListColumnState extends ConsumerState<ListColumn> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
               _buildHeader(theme),
-              Flexible(
+              Expanded(
                 child: cards.isEmpty
-                    ? _EmptyListHint(hovering: hovering)
+                    ? Align(
+                        alignment: Alignment.topCenter,
+                        child: SizedBox(
+                          height: 110,
+                          child: _EmptyListHint(hovering: hovering),
+                        ),
+                      )
                     : Scrollbar(
                         controller: _scrollController,
                         thumbVisibility: true,
                         child: ListView.builder(
                           controller: _scrollController,
-                          shrinkWrap: true,
                           padding: const EdgeInsets.fromLTRB(8, 2, 8, 4),
                           itemCount: cards.length,
                           itemBuilder: (context, index) {
@@ -186,24 +190,32 @@ class _ListColumnState extends ConsumerState<ListColumn> {
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 9),
+                      horizontal: 14,
+                      vertical: 9,
+                    ),
                     decoration: BoxDecoration(
                       color: VaultColors.surfaceRaised,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: theme.colorScheme.primary
-                              .withValues(alpha: 0.65)),
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.65,
+                        ),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.drag_indicator_rounded,
-                            size: 16, color: VaultColors.textSecondary),
+                        const Icon(
+                          Icons.drag_indicator_rounded,
+                          size: 16,
+                          color: VaultColors.textSecondary,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '${widget.list.title} · ${widget.list.cards.length}',
-                          style: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ],
                     ),
@@ -212,8 +224,11 @@ class _ListColumnState extends ConsumerState<ListColumn> {
                 childWhenDragging: Opacity(opacity: 0.4, child: titleText),
                 child: Row(
                   children: [
-                    const Icon(Icons.drag_indicator_rounded,
-                        size: 15, color: VaultColors.textSecondary),
+                    const Icon(
+                      Icons.drag_indicator_rounded,
+                      size: 15,
+                      color: VaultColors.textSecondary,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(child: titleText),
                   ],
@@ -229,14 +244,18 @@ class _ListColumnState extends ConsumerState<ListColumn> {
             ),
             child: Text(
               '${widget.list.cards.length}',
-              style: theme.textTheme.labelSmall
-                  ?.copyWith(color: VaultColors.textSecondary),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: VaultColors.textSecondary,
+              ),
             ),
           ),
           PopupMenuButton<String>(
             tooltip: 'List options',
-            icon: const Icon(Icons.more_horiz_rounded,
-                size: 18, color: VaultColors.textSecondary),
+            icon: const Icon(
+              Icons.more_horiz_rounded,
+              size: 18,
+              color: VaultColors.textSecondary,
+            ),
             onSelected: _onMenu,
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -275,8 +294,10 @@ class _ListColumnState extends ConsumerState<ListColumn> {
                 child: ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.cleaning_services_outlined,
-                      size: 18),
+                  leading: const Icon(
+                    Icons.cleaning_services_outlined,
+                    size: 18,
+                  ),
                   title: Text('Clear $doneCount done card(s)'),
                 ),
               ),
@@ -285,10 +306,15 @@ class _ListColumnState extends ConsumerState<ListColumn> {
                 child: ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.delete_outline_rounded,
-                      size: 18, color: Color(0xFFEF5350)),
-                  title: Text('Delete list',
-                      style: TextStyle(color: Color(0xFFEF5350))),
+                  leading: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: Color(0xFFEF5350),
+                  ),
+                  title: Text(
+                    'Delete list',
+                    style: TextStyle(color: Color(0xFFEF5350)),
+                  ),
                 ),
               ),
             ],
@@ -326,8 +352,10 @@ class _ListColumnState extends ConsumerState<ListColumn> {
         decoration: InputDecoration(
           hintText: 'Card title — Enter to add',
           isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 10,
+          ),
           suffixIcon: IconButton(
             tooltip: 'Close',
             icon: const Icon(Icons.close_rounded, size: 16),
@@ -370,7 +398,9 @@ class _InsertDropTarget extends StatelessWidget {
               duration: const Duration(milliseconds: 100),
               height: active ? 3 : 0,
               margin: EdgeInsets.symmetric(
-                  horizontal: 4, vertical: active ? 3 : 0),
+                horizontal: 4,
+                vertical: active ? 3 : 0,
+              ),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(2),
@@ -405,10 +435,9 @@ class _EmptyListHint extends StatelessWidget {
       child: Center(
         child: Text(
           hovering ? 'Release to drop' : 'No cards yet',
-          style: Theme.of(context)
-              .textTheme
-              .labelMedium
-              ?.copyWith(color: VaultColors.textSecondary),
+          style: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(color: VaultColors.textSecondary),
         ),
       ),
     );

@@ -22,6 +22,15 @@ Built with Flutter (Material 3, dark theme) for **Linux** and **Windows**.
   non-matching cards dim so drag-and-drop keeps working mid-search.
 - **Live stats** — a completion meter in the board header shows done/total and
   percentage at a glance.
+- **Responsive workspace** — lists share the available width and wrap into full
+  rows in smaller windows. Long lists scroll independently; the sidebar compacts
+  automatically. The initial window size follows your display's usable area.
+- **Portable save files** — use **Save file** at the bottom of the sidebar (the
+  save icon in compact mode) to export every board to a `.vaultboard` file or
+  import one. Imports preview board names and counts, then add independent copies
+  without overwriting existing boards. Cards, descriptions, priorities,
+  completion, colors, dates, and ordering are preserved. Save files are readable
+  JSON, stay local, and support up to 20 MB.
 
 ## Install
 
@@ -75,7 +84,8 @@ Everything lives in a single local Hive database:
 - **Linux:** `~/Documents/VaultBoard/`
 - **Windows:** `%USERPROFILE%\Documents\VaultBoard\`
 
-Back up that folder and you have backed up all your boards.
+Back up that folder, or use **Save file → Export save file** to create a portable
+backup. Restore it with **Save file → Import save file → Import boards**.
 
 ## Development
 
@@ -87,7 +97,13 @@ flutter pub get
 flutter run -d linux      # or -d windows
 flutter analyze
 flutter test
+flutter test integration_test/app_test.dart -d windows  # visible app checks
 ```
+
+The Windows integration checks use a temporary vault, exercise resizing,
+dragging, search, list/card creation, and save-file round-trips, and capture PNGs
+in `build/verification/`. File selections are supplied by a test stub; normal
+builds use native file dialogs. Your personal vault is not used by the tests.
 
 ### Building distro packages locally
 

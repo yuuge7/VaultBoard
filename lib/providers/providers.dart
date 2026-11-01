@@ -30,10 +30,12 @@ class BoardsNotifier extends StateNotifier<List<Board>> {
   ) {
     _updateBoard(
       boardId,
-      (board) => board.copyWith(lists: [
-        for (final l in board.lists)
-          if (l.id == listId) transform(l) else l,
-      ]),
+      (board) => board.copyWith(
+        lists: [
+          for (final l in board.lists)
+            if (l.id == listId) transform(l) else l,
+        ],
+      ),
     );
   }
 
@@ -44,7 +46,8 @@ class BoardsNotifier extends StateNotifier<List<Board>> {
     final board = Board(
       id: id,
       name: name,
-      colorValue: colorValue ??
+      colorValue:
+          colorValue ??
           VaultColors
               .boardPalette[state.length % VaultColors.boardPalette.length]
               .toARGB32(),
@@ -65,24 +68,64 @@ class BoardsNotifier extends StateNotifier<List<Board>> {
   void deleteBoard(String boardId) =>
       _commit(state.where((b) => b.id != boardId).toList());
 
+  /// Adds independent copies so importing a backup never overwrites a board.
+  /// State is published only after the complete imported tree reaches disk.
+  Future<String?> importBoards(List<Board> boards, String? selectedId) async {
+    if (boards.isEmpty) return null;
+    String? importedSelection;
+    final copies = boards.map((board) {
+      final id = _uuid.v4();
+      if (board.id == selectedId) importedSelection = id;
+      return Board(
+        id: id,
+        name: board.name,
+        colorValue: board.colorValue,
+        createdAt: board.createdAt,
+        lists: [
+          for (final list in board.lists)
+            KanbanList(
+              id: _uuid.v4(),
+              title: list.title,
+              cards: [
+                for (final card in list.cards)
+                  KanbanCard(
+                    id: _uuid.v4(),
+                    title: card.title,
+                    description: card.description,
+                    createdAt: card.createdAt,
+                    priority: card.priority,
+                    isDone: card.isDone,
+                  ),
+              ],
+            ),
+        ],
+      );
+    }).toList();
+    final next = [...state, ...copies];
+    await VaultStorage.saveBoards(next);
+    state = next;
+    return importedSelection ?? copies.first.id;
+  }
+
   // ---- Lists --------------------------------------------------------------
 
   void addList(String boardId, String title) => _updateBoard(
-        boardId,
-        (b) => b.copyWith(
-          lists: [...b.lists, KanbanList(id: _uuid.v4(), title: title)],
-        ),
-      );
+    boardId,
+    (b) => b.copyWith(
+      lists: [
+        ...b.lists,
+        KanbanList(id: _uuid.v4(), title: title),
+      ],
+    ),
+  );
 
   void renameList(String boardId, String listId, String title) =>
       _updateList(boardId, listId, (l) => l.copyWith(title: title));
 
   void deleteList(String boardId, String listId) => _updateBoard(
-        boardId,
-        (b) => b.copyWith(
-          lists: b.lists.where((l) => l.id != listId).toList(),
-        ),
-      );
+    boardId,
+    (b) => b.copyWith(lists: b.lists.where((l) => l.id != listId).toList()),
+  );
 
   /// Moves a list so it ends up before the list currently at [toIndex]
   /// (insert-before semantics; [toIndex] == lists.length drops it at the end).
@@ -118,37 +161,41 @@ class BoardsNotifier extends StateNotifier<List<Board>> {
   }
 
   void clearDoneCards(String boardId, String listId) => _updateList(
-        boardId,
-        listId,
-        (l) => l.copyWith(cards: l.cards.where((c) => !c.isDone).toList()),
-      );
+    boardId,
+    listId,
+    (l) => l.copyWith(cards: l.cards.where((c) => !c.isDone).toList()),
+  );
 
   // ---- Cards --------------------------------------------------------------
 
   void addCard(String boardId, String listId, String title) => _updateList(
-        boardId,
-        listId,
-        (l) => l.copyWith(cards: [
-          ...l.cards,
-          KanbanCard(id: _uuid.v4(), title: title, createdAt: DateTime.now()),
-        ]),
-      );
+    boardId,
+    listId,
+    (l) => l.copyWith(
+      cards: [
+        ...l.cards,
+        KanbanCard(id: _uuid.v4(), title: title, createdAt: DateTime.now()),
+      ],
+    ),
+  );
 
   void updateCard(String boardId, String listId, KanbanCard card) =>
       _updateList(
         boardId,
         listId,
-        (l) => l.copyWith(cards: [
-          for (final c in l.cards)
-            if (c.id == card.id) card else c,
-        ]),
+        (l) => l.copyWith(
+          cards: [
+            for (final c in l.cards)
+              if (c.id == card.id) card else c,
+          ],
+        ),
       );
 
   void deleteCard(String boardId, String listId, String cardId) => _updateList(
-        boardId,
-        listId,
-        (l) => l.copyWith(cards: l.cards.where((c) => c.id != cardId).toList()),
-      );
+    boardId,
+    listId,
+    (l) => l.copyWith(cards: l.cards.where((c) => c.id != cardId).toList()),
+  );
 
   /// Moves a card to [toIndex] inside [toListId] (which may be the same
   /// list). Index math accounts for the removal shifting positions.
@@ -180,7 +227,9 @@ class BoardsNotifier extends StateNotifier<List<Board>> {
           lists.add(l.copyWith(cards: cards));
         } else if (l.id == fromListId) {
           lists.add(
-            l.copyWith(cards: List<KanbanCard>.of(l.cards)..removeAt(fromIndex)),
+            l.copyWith(
+              cards: List<KanbanCard>.of(l.cards)..removeAt(fromIndex),
+            ),
           );
         } else if (l.id == toListId) {
           final cards = List<KanbanCard>.of(l.cards)
@@ -217,8 +266,8 @@ class SelectedBoardNotifier extends StateNotifier<String?> {
 
 final selectedBoardIdProvider =
     StateNotifierProvider<SelectedBoardNotifier, String?>(
-  (ref) => SelectedBoardNotifier(ref.read(boardsProvider)),
-);
+      (ref) => SelectedBoardNotifier(ref.read(boardsProvider)),
+    );
 
 /// The board currently shown on the canvas; falls back to the first board if
 /// the stored selection no longer exists.
